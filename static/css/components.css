@@ -358,30 +358,103 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--sp-3);
+  width: 100%;
   min-height: 44px;
   padding: var(--sp-2) var(--sp-4);
   overflow: hidden;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-left: 6px solid var(--c);
   border-radius: var(--radius-input);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option-row:not(:disabled):hover {
+  background: color-mix(in srgb, var(--c) 8%, var(--surface));
+}
+
+.option-row:disabled {
+  cursor: default;
+}
+
+.option-row-voted {
+  border: 2px solid var(--ink);
+  border-left: 6px solid var(--c);
+  font-weight: 700;
 }
 
 .option-fill {
   position: absolute;
   inset: 0 auto 0 0;
   background: color-mix(in srgb, var(--c) 22%, var(--surface));
+  transition: width 450ms cubic-bezier(.2, .8, .2, 1);
 }
 
 .option-text,
+.option-check,
 .option-percent {
   position: relative;
 }
 
+.option-text {
+  flex: 1;
+}
+
 .option-percent {
+  min-width: 3ch;
   font-family: ui-monospace, monospace;
   font-weight: 500;
+  text-align: right;
+}
+
+.bar-seg {
+  transition: width 450ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.owner-actions form {
+  margin: 0;
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: color-mix(in srgb, var(--danger) 70%, var(--ink));
+}
+
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.delete-question {
+  margin: 0 0 var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 4px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 6%, var(--surface));
+  font-weight: 600;
 }
 
 /* Anket oluşturma: seçenek girişleri */

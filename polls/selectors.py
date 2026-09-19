@@ -5,6 +5,7 @@ from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
 from .models import Poll, Vote
+from .utils import voter_key_for
 
 PAGE_SIZE = 20
 POPULAR_WINDOW_DAYS = 7
@@ -59,11 +60,21 @@ def profile_stats(user):
     return {"polls": totals["polls"], "votes": totals["votes"] or 0}
 
 
-def voted_poll_ids(user, session, poll_ids):
-    ids = set(session.get("voted_polls", []))
-    if user.is_authenticated and poll_ids:
-        ids |= set(Vote.objects.filter(user=user, poll_id__in=poll_ids).values_list("poll_id", flat=True))
-    return ids
+def votes_by_poll(user, session, poll_ids):
+    """{poll_id: option_id | None}. Oturumdaki `voted_polls` ipucu seçeneği bilmez (None), DB kaydı bilir."""
+    votes = {poll_id: None for poll_id in session.get("voted_polls", []) if poll_id in poll_ids}
+    if not poll_ids:
+        return votes
+    if user.is_authenticated:
+        rows = Vote.objects.filter(user=user, poll_id__in=poll_ids)
+    elif session.session_key:
+        rows = Vote.objects.filter(
+            voter_key=voter_key_for(session.session_key), user__isnull=True, poll_id__in=poll_ids
+        )
+    else:
+        return votes
+    votes.update(rows.values_list("poll_id", "option_id"))
+    return votes
 
 
 def count_polls_created_today(user):

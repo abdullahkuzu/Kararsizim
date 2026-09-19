@@ -1,9 +1,10 @@
-<li class="option-row opt-{{ row.index }}{% if view.show_results %} option-row-result{% endif %}">
-  {% if view.show_results %}
-    <span class="option-fill" style="width: {{ row.percent }}%"></span>
+<li>
+  <button type="submit" name="option_id" value="{{ row.option.pk }}"
+          class="option-row opt-{{ row.index }}{% if row.option.pk == view.voted_option_id %} option-row-voted{% endif %}"
+          {% if not view.can_vote %}disabled{% endif %}>
+    <span class="option-fill" style="width: {% if view.show_results %}{{ row.percent }}{% else %}0{% endif %}%"></span>
     <span class="option-text">{{ row.option.text }}</span>
-    <span class="option-percent">%{{ row.percent }}</span>
-  {% else %}
-    <span class="option-text">{{ row.option.text }}</span>
-  {% endif %}
+    <span class="option-check"{% if row.option.pk != view.voted_option_id %} hidden{% endif %}><span aria-hidden="true">✓</span><span class="visually-hidden"> Senin oyun</span></span>
+    <span class="option-percent">{% if view.show_results %}%{{ row.percent }}{% endif %}</span>
+  </button>
 </li>

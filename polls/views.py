@@ -1,10 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
 
 from . import selectors, services
 from .forms import PollForm
+from .models import Poll
+from .utils import get_voter_key
 
 
 def _page_number(request):
@@ -30,10 +35,110 @@ def index(request):
     })
 
 
+def _render_detail(request, poll, status=200):
+    view = services.build_poll_views([poll], request.user, request.session)[0]
+    return render(request, "polls/detail.html", {"view": view}, status=status)
+
+
 def detail(request, public_id):
     poll = get_object_or_404(selectors.poll_queryset(), public_id=public_id)
+    return _render_detail(request, poll)
+
+
+def _wants_json(request):
+    return (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("Accept", "")
+    )
+
+
+def _mark_voted(session, poll_id):
+    voted = session.get("voted_polls", [])
+    if poll_id not in voted:
+        session["voted_polls"] = [*voted, poll_id]
+
+
+VOTE_ERRORS = {
+    services.PollClosed: (403, "Bu anket kapandı."),
+    services.InvalidOption: (400, "Geçersiz seçenek."),
+    services.AlreadyVoted: (409, "Bu ankete zaten oy verdin."),
+}
+
+
+@require_POST
+def vote(request, public_id):
+    poll = get_object_or_404(selectors.poll_queryset(), public_id=public_id)
+    voted_hint = poll.pk in request.session.get("voted_polls", [])
+
+    try:
+        option_id = int(request.POST.get("option_id", ""))
+    except ValueError:
+        option_id = None
+    option = next((o for o in poll.options.all() if o.pk == option_id), None)
+
+    error = None
+    try:
+        services.cast_vote(poll, option, request.user, get_voter_key(request, create=True), voted_hint)
+    except tuple(VOTE_ERRORS) as exc:
+        error = VOTE_ERRORS[type(exc)]
+    else:
+        _mark_voted(request.session, poll.pk)
+
+    if error and error[0] == 409:
+        _mark_voted(request.session, poll.pk)
+
+    if not _wants_json(request):
+        if error is None:
+            messages.success(request, "Oyun kaydedildi.")
+            return redirect(poll)
+        if error[0] == 400:
+            return HttpResponse(error[1], status=400, content_type="text/plain; charset=utf-8")
+        messages.error(request, error[1])
+        poll = selectors.poll_queryset().get(pk=poll.pk)
+        return _render_detail(request, poll, status=error[0])
+
+    if error and error[0] == 400:
+        return JsonResponse({"error": error[1]}, status=400)
+    poll = selectors.poll_queryset().get(pk=poll.pk)
     view = services.build_poll_views([poll], request.user, request.session)[0]
-    return render(request, "polls/detail.html", {"view": view})
+    payload = services.results_payload(view)
+    if error:
+        return JsonResponse({"error": error[1], **payload}, status=error[0])
+    return JsonResponse({"ok": True, **payload})
+
+
+@require_GET
+@never_cache
+def results(request, public_id):
+    poll = get_object_or_404(selectors.poll_queryset(), public_id=public_id)
+    view = services.build_poll_views([poll], request.user, request.session)[0]
+    return JsonResponse(services.results_payload(view))
+
+
+def _owned_poll_or_403(request, public_id):
+    poll = get_object_or_404(Poll, public_id=public_id)
+    if poll.author_id != request.user.id:
+        raise PermissionDenied
+    return poll
+
+
+@login_required
+@require_POST
+def close(request, public_id):
+    poll = _owned_poll_or_403(request, public_id)
+    services.close_poll(poll)
+    messages.success(request, "Anket kapatıldı.")
+    return redirect(poll)
+
+
+@login_required
+def delete(request, public_id):
+    poll = _owned_poll_or_403(request, public_id)
+    if request.method == "POST":
+        poll.delete()
+        messages.success(request, "Anket silindi.")
+        return redirect("polls:index")
+    return render(request, "polls/delete.html", {"poll": poll})
 
 
 @login_required

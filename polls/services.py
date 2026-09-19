@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.db.models import F
 
 from . import selectors
-from .models import Option, Poll
+from .models import Option, Poll, Vote
 
 MIN_OPTIONS = 2
 MAX_OPTIONS = 5
@@ -11,6 +12,18 @@ DAILY_POLL_LIMIT = 10
 
 
 class DailyLimitReached(Exception):
+    pass
+
+
+class PollClosed(Exception):
+    pass
+
+
+class InvalidOption(Exception):
+    pass
+
+
+class AlreadyVoted(Exception):
     pass
 
 
@@ -23,6 +36,40 @@ def create_poll(author, question, description, option_texts):
             [Option(poll=poll, text=text, position=position) for position, text in enumerate(option_texts)]
         )
     return poll
+
+
+def _already_voted(poll, user, voter_key):
+    if user.is_authenticated:
+        return Vote.objects.filter(poll=poll, user=user).exists()
+    return Vote.objects.filter(poll=poll, voter_key=voter_key, user__isnull=True).exists()
+
+
+def cast_vote(poll, option, user, voter_key, voted_hint=False):
+    """Oy kullanır. `voted_hint`: oturumda bu anket zaten oy verilmiş olarak işaretli."""
+    if not poll.is_open:
+        raise PollClosed
+    if option is None or option.poll_id != poll.pk:
+        raise InvalidOption
+    if voted_hint or _already_voted(poll, user, voter_key):
+        raise AlreadyVoted
+    try:
+        with transaction.atomic():
+            Vote.objects.create(
+                poll=poll,
+                option=option,
+                user=user if user.is_authenticated else None,
+                voter_key=voter_key,
+            )
+            Option.objects.filter(pk=option.pk).update(vote_count=F("vote_count") + 1)
+            Poll.objects.filter(pk=poll.pk).update(total_votes=F("total_votes") + 1)
+    except IntegrityError:
+        raise AlreadyVoted from None
+
+
+def close_poll(poll):
+    if poll.status != Poll.Status.CLOSED:
+        poll.status = Poll.Status.CLOSED
+        poll.save(update_fields=["status"])
 
 
 def compute_percents(counts):
@@ -49,10 +96,6 @@ def decision_badge(total, percents):
     return "Karar net"
 
 
-def can_see_results(poll, user, voted_ids):
-    return not poll.is_open or poll.author_id == user.id or poll.pk in voted_ids
-
-
 @dataclass
 class OptionRow:
     option: Option
@@ -65,6 +108,10 @@ class OptionRow:
 @dataclass
 class PollView:
     poll: Poll
+    is_open: bool
+    is_owner: bool
+    has_voted: bool
+    voted_option_id: int | None
     show_results: bool
     rows: list[OptionRow] = field(default_factory=list)
     badge: str = ""
@@ -74,11 +121,21 @@ class PollView:
         return self.poll.total_votes
 
     @property
+    def can_vote(self):
+        return self.is_open and not self.has_voted
+
+    @property
     def bar_active(self):
         return self.show_results and self.total > 0
 
 
-def build_poll_view(poll, show_results):
+def build_poll_view(poll, user, votes):
+    """`votes`: selectors.votes_by_poll çıktısı."""
+    is_open = poll.is_open
+    is_owner = poll.author_id == user.id
+    has_voted = poll.pk in votes
+    show_results = not is_open or is_owner or has_voted
+
     options = list(poll.options.all())
     if show_results:
         counts = [option.vote_count for option in options]
@@ -88,9 +145,34 @@ def build_poll_view(poll, show_results):
     else:
         rows = [OptionRow(option, i) for i, option in enumerate(options)]
         badge = "İlk oyu sen ver" if poll.total_votes == 0 else "Sonuçlar oy verince açılır"
-    return PollView(poll=poll, show_results=show_results, rows=rows, badge=badge)
+    return PollView(
+        poll=poll,
+        is_open=is_open,
+        is_owner=is_owner,
+        has_voted=has_voted,
+        voted_option_id=votes.get(poll.pk),
+        show_results=show_results,
+        rows=rows,
+        badge=badge,
+    )
 
 
 def build_poll_views(polls, user, session):
-    voted_ids = selectors.voted_poll_ids(user, session, [poll.pk for poll in polls])
-    return [build_poll_view(poll, can_see_results(poll, user, voted_ids)) for poll in polls]
+    votes = selectors.votes_by_poll(user, session, [poll.pk for poll in polls])
+    return [build_poll_view(poll, user, votes) for poll in polls]
+
+
+def results_payload(view):
+    options = []
+    for row in view.rows:
+        item = {"id": row.option.pk, "text": row.option.text}
+        if view.show_results:
+            item.update(count=row.count, percent=row.percent)
+        options.append(item)
+    return {
+        "total": view.total,
+        "options": options,
+        "voted_option_id": view.voted_option_id,
+        "is_open": view.is_open,
+        "badge": view.badge,
+    }
