@@ -1,0 +1,9 @@
+<li class="option-row opt-{{ row.index }}{% if view.show_results %} option-row-result{% endif %}">
+  {% if view.show_results %}
+    <span class="option-fill" style="width: {{ row.percent }}%"></span>
+    <span class="option-text">{{ row.option.text }}</span>
+    <span class="option-percent">%{{ row.percent }}</span>
+  {% else %}
+    <span class="option-text">{{ row.option.text }}</span>
+  {% endif %}
+</li>

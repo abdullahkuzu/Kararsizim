@@ -27,3 +27,16 @@ a {
     transition: none !important;
   }
 }
+
+[hidden] {
+  display: none !important;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.page-narrow {
+  max-width: 640px;
+}

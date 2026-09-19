@@ -1,0 +1,10 @@
+<div class="decision-bar{% if not view.bar_active %} decision-bar-neutral{% endif %}"
+     role="img"
+     aria-label="{% if view.bar_active %}Oy dağılımı:{% for row in view.rows %} {{ row.option.text }} %{{ row.percent }}{% if not forloop.last %},{% endif %}{% endfor %}{% else %}Sonuçlar henüz gösterilmiyor{% endif %}">
+  {% if view.bar_active %}
+    {% for row in view.rows %}
+      {% if row.percent %}<span class="bar-seg opt-{{ row.index }}" style="width: {{ row.percent }}%"></span>{% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+<p class="badge{% if not view.show_results and view.total %} badge-neutral{% endif %}">{{ view.badge }}</p>

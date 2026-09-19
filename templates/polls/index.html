@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Kararsızım</h1>
+  <div class="page">
+    <nav class="tabs" aria-label="Anket akışı">
+      {% for key, label in tabs.items %}
+        <a class="tab{% if key == tab %} tab-active{% endif %}" href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    {% include "partials/poll_list.html" %}
+  </div>
 {% endblock %}

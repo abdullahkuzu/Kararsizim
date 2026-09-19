@@ -100,6 +100,11 @@ class LoginLogoutTests(TestCase):
         self.assertRedirects(response, "/")
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
+    def test_login_labels_are_turkish(self):
+        response = self.client.get(reverse("accounts:login"))
+        self.assertContains(response, "Kullanıcı adı")
+        self.assertNotContains(response, "Username")
+
     def test_wrong_password_shows_error(self):
         response = self.client.post(reverse("accounts:login"), {"username": "KullaniciAdi", "password": "yanlis"})
         self.assertEqual(response.status_code, 200)
@@ -140,7 +145,7 @@ class HeaderAndPrivacyTests(TestCase):
         cls.user = User.objects.create_user("gizli_kisi", "gizli@example.com", PASSWORD)
 
     def test_anonymous_header(self):
-        response = self.client.get("/")
+        response = self.client.get(reverse("accounts:login"))
         self.assertContains(response, "Giriş yap")
         self.assertContains(response, "Kayıt ol")
         self.assertNotContains(response, "Anket oluştur")

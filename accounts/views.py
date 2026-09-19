@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 
-from .forms import RegisterForm
+from .forms import LoginForm, RegisterForm
 
 
 def register(request):
@@ -27,4 +27,5 @@ def register(request):
 
 class SiteLoginView(LoginView):
     template_name = "accounts/login.html"
+    authentication_form = LoginForm
     redirect_authenticated_user = True

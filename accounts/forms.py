@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import BaseUserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, BaseUserCreationForm
 from django.core.exceptions import ValidationError
 
 from .models import User
@@ -42,3 +42,11 @@ class RegisterForm(BaseUserCreationForm):
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError("Bu e-posta ile zaten bir hesap var. Giriş yapmayı dene.")
         return email
+
+
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].label = "Kullanıcı adı"
+        self.fields["username"].widget.attrs.update({"autocapitalize": "none"})
+        self.fields["password"].label = "Parola"

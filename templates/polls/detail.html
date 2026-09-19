@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load polls_extras %}
+
+{% block title %}{{ view.poll.question }} · Kararsızım{% endblock %}
+
+{% block content %}
+  <div class="page page-narrow">
+    <article class="card poll-detail">
+      <h1 class="poll-question">{{ view.poll.question }}</h1>
+      {% if view.poll.description %}<p class="poll-description">{{ view.poll.description }}</p>{% endif %}
+      <p class="poll-meta">
+        <a href="{% url 'polls:profile' view.poll.author.username %}">@{{ view.poll.author.username }}</a>
+        · {{ view.poll.created_at|time_ago }}
+        · {% if view.total %}{{ view.total }} kişi oy verdi{% else %}Henüz oy yok{% endif %}
+        {% if not view.poll.is_open %}· <span class="tag-closed">Kapandı</span>{% endif %}
+      </p>
+
+      {% include "partials/decision_bar.html" %}
+
+      <ul class="option-list" aria-live="polite">
+        {% for row in view.rows %}{% include "partials/option_row.html" %}{% endfor %}
+      </ul>
+    </article>
+  </div>
+{% endblock %}
