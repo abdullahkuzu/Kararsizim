@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Lower
@@ -9,7 +9,14 @@ username_validator = RegexValidator(
 )
 
 
+class CaseInsensitiveUserManager(UserManager):
+    def get_by_natural_key(self, username):
+        return self.get(username__iexact=username)
+
+
 class User(AbstractUser):
+    objects = CaseInsensitiveUserManager()
+
     username = models.CharField(
         max_length=20,
         unique=True,

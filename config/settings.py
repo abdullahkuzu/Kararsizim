@@ -82,6 +82,11 @@ if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
     DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
     DATABASES["default"].setdefault("OPTIONS", {})["prepare_threshold"] = None
 
+# Pooler ayrı test veritabanı açamaz ve testler gerçek veriye dokunmamalı.
+if "test" in sys.argv:
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
@@ -95,6 +100,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "accounts.User"
 
 LOGIN_URL = "/giris/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 LANGUAGE_CODE = "tr"
 TIME_ZONE = "Europe/Istanbul"

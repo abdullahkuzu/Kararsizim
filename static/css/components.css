@@ -1,0 +1,194 @@
+/* Header */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.site-nav form {
+  margin: 0;
+}
+
+.site-user {
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 var(--sp-2);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--sp-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms;
+}
+
+.btn-primary {
+  background: var(--violet);
+  color: var(--surface);
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--violet) 85%, var(--ink));
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* Form card */
+.form-card {
+  max-width: 440px;
+  margin: var(--sp-6) auto;
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-card h1 {
+  margin: 0 0 var(--sp-2);
+  font-size: 26px;
+}
+
+.form-lead {
+  margin: 0 0 var(--sp-5);
+  color: var(--muted);
+}
+
+.form-alt {
+  margin: var(--sp-5) 0 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Fields */
+.field {
+  margin-bottom: var(--sp-4);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: var(--sp-1);
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-input);
+  color: var(--ink);
+  font: inherit;
+}
+
+.field-invalid input {
+  border-color: var(--danger);
+}
+
+.field-help {
+  margin: var(--sp-1) 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.field-errors {
+  margin: var(--sp-1) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--danger) 70%, var(--ink));
+}
+
+/* Notices */
+.notice {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-input);
+  border: 1px solid var(--line);
+}
+
+.notice p {
+  margin: 0;
+}
+
+.notice-info {
+  background: color-mix(in srgb, var(--violet) 8%, var(--surface));
+}
+
+.notice-error {
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  border-color: var(--danger);
+  color: color-mix(in srgb, var(--danger) 70%, var(--ink));
+  font-weight: 600;
+}
+
+/* Toast */
+.toast-region {
+  position: fixed;
+  right: var(--sp-4);
+  bottom: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 10;
+}
+
+.toast {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--ink);
+  color: var(--surface);
+  border-radius: var(--radius-input);
+  box-shadow: var(--shadow-md);
+  /* JS kapalıyken de 3 saniye sonra kaybolur */
+  animation: toast-out 10ms 3s forwards;
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

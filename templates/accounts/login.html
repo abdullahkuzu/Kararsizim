@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Giriş yap · Kararsızım{% endblock %}
+
+{% block content %}
+  <section class="form-card">
+    <h1>Giriş yap</h1>
+
+    {% if next == "/anket/olustur/" %}
+      <div class="notice notice-info">Anket oluşturmak için giriş yapman gerekiyor.</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="notice notice-error" role="alert">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+      {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn-primary btn-block">Giriş yap</button>
+    </form>
+
+    <p class="form-alt">Hesabın yok mu? <a href="{% url 'accounts:register' %}">Kayıt ol</a></p>
+  </section>
+{% endblock %}

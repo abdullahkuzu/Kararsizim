@@ -12,3 +12,18 @@ body {
 main {
   padding: var(--sp-5) var(--sp-4);
 }
+
+a {
+  color: var(--violet);
+}
+
+:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
+}

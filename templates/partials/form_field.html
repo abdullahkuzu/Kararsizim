@@ -1,0 +1,10 @@
+<div class="field{% if field.errors %} field-invalid{% endif %}">
+  <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}
+    <ul class="field-errors">
+      {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+</div>
