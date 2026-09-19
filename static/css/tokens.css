@@ -5,6 +5,7 @@
   --ink:        #16143A;   /* ana metin, koyu mor-lacivert */
   --muted:      #6B6890;   /* ikincil metin */
   --line:       rgba(22, 20, 58, 0.10); /* kenarlık */
+  --line-strong: rgba(22, 20, 58, 0.55); /* form kontrolü sınırı, 3:1 kontrast */
 
   /* canlı renkler — seçenek renkleri de bunlardan gelir */
   --violet:     #5B3DF5;   /* birincil aksiyon */
@@ -31,6 +32,15 @@
   --radius-card: 20px;
   --radius-pill: 999px;
   --radius-input: 14px;
+
+  /* yazı tipleri */
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* tip ölçeği */
+  --fs-12: 12px; --fs-14: 14px; --fs-16: 16px; --fs-20: 20px;
+  --fs-26: 26px; --fs-34: 34px; --fs-44: 44px;
 
   /* aralık ölçeği */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;

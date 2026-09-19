@@ -16,3 +16,8 @@ def time_ago(value):
     if seconds < 30 * 86400:
         return f"{seconds // 86400} gün önce"
     return timezone.localtime(value).strftime("%d.%m.%Y")
+
+
+@register.simple_tag(takes_context=True)
+def absolute_url(context, path):
+    return context["request"].build_absolute_uri(path)

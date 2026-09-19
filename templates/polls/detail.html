@@ -3,6 +3,10 @@
 
 {% block title %}{{ view.poll.question }} · Kararsızım{% endblock %}
 
+{% block description %}{{ view.poll.question }} Seçenekler:{% for row in view.rows %} {{ row.option.text }}{% if not forloop.last %},{% endif %}{% endfor %}. Sen de oy ver.{% endblock %}
+{% block og_title %}{{ view.poll.question }}{% endblock %}
+{% block og_description %}Seçenekler:{% for row in view.rows %} {{ row.option.text }}{% if not forloop.last %},{% endif %}{% endfor %}. Sen de oy ver.{% endblock %}
+
 {% block content %}
   <div class="page page-narrow">
     <article class="card poll-detail">

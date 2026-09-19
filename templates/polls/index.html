@@ -2,6 +2,7 @@
 
 {% block content %}
   <div class="page">
+    <h1 class="page-title">Sen sor, kalabalık karar versin.</h1>
     <nav class="tabs" aria-label="Anket akışı">
       {% for key, label in tabs.items %}
         <a class="tab{% if key == tab %} tab-active{% endif %}" href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ label }}</a>

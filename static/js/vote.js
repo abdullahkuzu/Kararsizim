@@ -68,6 +68,10 @@
     if (busy) { return; }
     busy = true;
     form.setAttribute("aria-busy", "true");
+    button.classList.add("is-loading");
+    var percent = button.querySelector(".option-percent");
+    var previous = percent.textContent;
+    percent.textContent = "…";
 
     var body = new FormData();
     body.append("option_id", button.value);
@@ -95,6 +99,8 @@
       .then(function () {
         busy = false;
         form.removeAttribute("aria-busy");
+        button.classList.remove("is-loading");
+        if (percent.textContent === "…") { percent.textContent = previous; }
       });
   });
 })();

@@ -32,7 +32,8 @@ Windows/Git Bash'te `curl -d "next=/anket/..."` gibi `/` ile başlayan değerler
 - **Sonuç gösterimi tek noktada**: `services.build_poll_view` (`PollView`, `OptionRow`) sonuçlar gizliyken `count`/`percent`'i hiç taşımaz; kart, detay ve `/sonuc/` JSON'u aynı yoldan geçer (`results_payload`). Yeni bir yerde sayı göstermek gerekirse bu yolu kullan, şablonda `poll.total_votes`/`option.vote_count` yazdırma.
 - **Gizlilik**: e-posta hiçbir template, JSON veya logda görünmez; ham IP saklanmaz; anket URL'leri sıralı id yerine `public_id` kullanır.
 - **Progressive enhancement**: JS kapalıyken anket oluşturma ve oy verme (form POST + redirect) çalışmalı; JS sadece iyileştirme (`static/js/`).
-- **Frontend**: vanilla JS + el yazımı CSS. Şablonlarda ve CSS'te ham hex kodu yok, sadece [static/css/tokens.css](static/css/tokens.css) değişkenleri.
+- **Frontend**: vanilla JS + el yazımı CSS. Şablonlarda ve CSS'te ham hex kodu yok, sadece [static/css/tokens.css](static/css/tokens.css) değişkenleri (renk, `--font-*`, `--fs-*`, `--sp-*`); `polls/test_ui.py` bunu ve tanımsız `var(--x)` kullanımını denetler. Yazı tipleri Google Fonts'tan (`base.html`), sistem fontuna düşer. `static/img/og.png` üretilmiş bir dosyadır (`tools/make_og.ps1`); SVG'lerde hex serbest.
+- **Hata sayfaları**: `templates/{403,403_csrf,404,500}.html`. `500.html` bilerek `base.html`'i kullanmaz (bağımsız, bağlamsız render edilir).
 
 ## Configuration gotchas
 

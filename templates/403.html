@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Erişim yok · Kararsızım{% endblock %}
+
+{% block content %}
+  <section class="error-page">
+    <p class="error-code">403</p>
+    <h1>Buna iznin yok</h1>
+    <p>Bu işlemi sadece anketin sahibi yapabilir.</p>
+    <a class="btn btn-primary" href="{% url 'polls:index' %}">Anketlere dön</a>
+  </section>
+{% endblock %}

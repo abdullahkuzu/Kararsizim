@@ -4,22 +4,30 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
+  gap: var(--sp-2) var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 
 .site-logo {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
   font-weight: 800;
   color: var(--ink);
   text-decoration: none;
 }
 
+.site-logo img {
+  display: block;
+}
+
 .site-nav {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
 }
@@ -29,9 +37,33 @@
 }
 
 .site-user {
-  font-weight: 600;
-  color: var(--muted);
+  min-width: 0;
+  max-width: 14ch;
+  overflow: hidden;
   padding: 0 var(--sp-2);
+  color: var(--muted);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-nav .btn {
+  padding: 0 var(--sp-4);
+  font-size: var(--fs-14);
+  white-space: nowrap;
+}
+
+@media (max-width: 559px) {
+  .site-nav {
+    flex: 1 0 100%;
+    justify-content: flex-end;
+  }
+
+  .site-user {
+    flex: 1;
+    max-width: none;
+    padding-left: 0;
+  }
 }
 
 /* Buttons */
@@ -69,6 +101,11 @@
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-block {
   display: flex;
   width: 100%;
@@ -87,7 +124,7 @@
 
 .form-card h1 {
   margin: 0 0 var(--sp-2);
-  font-size: 26px;
+  font-size: var(--fs-26);
 }
 
 .form-lead {
@@ -118,7 +155,7 @@
   min-height: 44px;
   padding: 0 var(--sp-4);
   background: var(--surface);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-input);
   color: var(--ink);
   font: inherit;
@@ -132,11 +169,12 @@
 .field-invalid input,
 .field-invalid textarea {
   border-color: var(--danger);
+  border-width: 2px;
 }
 
 .field-help {
   margin: var(--sp-1) 0 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--muted);
 }
 
@@ -144,7 +182,7 @@
   margin: var(--sp-1) 0 0;
   padding: 0;
   list-style: none;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: color-mix(in srgb, var(--danger) 70%, var(--ink));
 }
@@ -269,7 +307,7 @@
 
 .poll-question {
   margin: 0 0 var(--sp-4);
-  font-size: 20px;
+  font-size: var(--fs-20);
   line-height: 1.3;
 }
 
@@ -283,7 +321,7 @@
 }
 
 .poll-detail .poll-question {
-  font-size: 26px;
+  font-size: var(--fs-26);
 }
 
 .poll-description {
@@ -292,8 +330,8 @@
 }
 
 .poll-meta {
-  margin: var(--sp-3) 0 0;
-  font-size: 14px;
+  margin: var(--sp-3) 0 var(--sp-3);
+  font-size: var(--fs-14);
   color: var(--muted);
 }
 
@@ -329,7 +367,7 @@
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--violet) 10%, var(--surface));
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -381,6 +419,14 @@
   cursor: default;
 }
 
+form[aria-busy="true"] .option-row {
+  cursor: progress;
+}
+
+form[aria-busy="true"] .option-row:not(.is-loading) {
+  opacity: 0.6;
+}
+
 .option-row-voted {
   border: 2px solid var(--ink);
   border-left: 6px solid var(--c);
@@ -406,24 +452,13 @@
 
 .option-percent {
   min-width: 3ch;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 500;
   text-align: right;
 }
 
 .bar-seg {
   transition: width 450ms cubic-bezier(.2, .8, .2, 1);
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .owner-actions {
@@ -483,7 +518,7 @@
   min-height: 44px;
   padding: 0 var(--sp-4);
   background: var(--surface);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-input);
   color: var(--ink);
   font: inherit;
@@ -505,7 +540,7 @@
 /* Profil, boş durum, sayfalama */
 .profile-head h1 {
   margin: 0;
-  font-size: 34px;
+  font-size: var(--fs-34);
 }
 
 .profile-stats {
@@ -521,10 +556,39 @@
 .empty-state p {
   margin: 0 0 var(--sp-4);
   color: var(--muted);
-  font-size: 20px;
+  font-size: var(--fs-20);
 }
 
 .load-more {
   margin: var(--sp-5) 0 0;
   text-align: center;
+}
+
+.poll-card .poll-meta {
+  margin-bottom: 0;
+}
+
+/* Hata sayfaları */
+.error-page {
+  max-width: 480px;
+  margin: var(--sp-7) auto;
+  text-align: center;
+}
+
+.error-code {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-44);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.error-page h1 {
+  margin: var(--sp-2) 0 var(--sp-3);
+  font-size: var(--fs-34);
+}
+
+.error-page p {
+  margin: 0 0 var(--sp-5);
+  color: var(--muted);
 }

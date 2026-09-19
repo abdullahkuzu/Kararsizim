@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Oturum doğrulanamadı · Kararsızım{% endblock %}
+
+{% block content %}
+  <section class="error-page">
+    <p class="error-code">403</p>
+    <h1>Oturum doğrulanamadı</h1>
+    <p>Sayfa uzun süre açık kalmış olabilir. Sayfayı yenileyip işlemi tekrar dene.</p>
+    <a class="btn btn-primary" href="{% url 'polls:index' %}">Anketlere dön</a>
+  </section>
+{% endblock %}

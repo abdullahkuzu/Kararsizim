@@ -1,0 +1,21 @@
+{% load static %}<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bir şeyler ters gitti · Kararsızım</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+</head>
+<body>
+  <main id="main">
+    <section class="error-page">
+      <p class="error-code">500</p>
+      <h1>Bir şeyler ters gitti</h1>
+      <p>Bu bizim hatamız. Birkaç dakika sonra tekrar dene.</p>
+      <a class="btn btn-primary" href="/">Anketlere dön</a>
+    </section>
+  </main>
+</body>
+</html>
