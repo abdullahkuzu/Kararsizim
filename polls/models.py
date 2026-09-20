@@ -69,3 +69,38 @@ class Vote(models.Model):
                 fields=["poll", "voter_key"], condition=Q(user__isnull=True), name="uniq_vote_per_anon"
             ),
         ]
+
+
+class RateLimitHit(models.Model):
+    """Hız sınırı sayacı. Ham IP saklanmaz, tuzlanmış özet (ip_hash) saklanır."""
+
+    scope = models.CharField(max_length=20)
+    ip_hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["scope", "ip_hash", "created_at"], name="ratelimit_lookup")]
+
+
+class Report(models.Model):
+    """Bir anketin "uygunsuz" olarak işaretlenmesi; kişi başına anket başına bir kez."""
+
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="reports")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="reports"
+    )
+    reporter_key = models.CharField(max_length=64, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "bildirim"
+        verbose_name_plural = "bildirimler"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["poll", "user"], condition=Q(user__isnull=False), name="uniq_report_per_user"
+            ),
+            models.UniqueConstraint(
+                fields=["poll", "reporter_key"], condition=Q(user__isnull=True), name="uniq_report_per_anon"
+            ),
+        ]

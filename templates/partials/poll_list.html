@@ -4,9 +4,14 @@
   </div>
   {% if has_more %}
     <p class="load-more">
-      <a class="btn btn-secondary" href="?{% if tab %}tab={{ tab }}&amp;{% endif %}page={{ next_page }}">Daha fazla göster</a>
+      <a class="btn btn-secondary" href="?{% if tab %}tab={{ tab }}&amp;{% endif %}{% if q %}q={{ q|urlencode }}&amp;{% endif %}page={{ next_page }}">Daha fazla göster</a>
     </p>
   {% endif %}
+{% elif q %}
+  <div class="empty-state">
+    <p>“{{ q }}” ile eşleşen anket yok.</p>
+    <a class="btn btn-secondary" href="?tab={{ tab }}">Aramayı temizle</a>
+  </div>
 {% else %}
   <div class="empty-state">
     <p>Henüz anket yok. İlk kararsızlığını sen paylaş.</p>

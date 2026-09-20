@@ -44,6 +44,8 @@ postgresql://postgres.<PROJE_REF>:<PAROLA>@aws-0-eu-central-1.pooler.supabase.co
 
 ## Migration'lar
 
+**Sıra önemlidir:** yeni tablo/sütun ekleyen bir değişiklikte önce migration'ı Supabase'e uygulayın, sonra kodu push'layın. Canlıdaki eski kod yeni tabloları kullanmadığı için bu sıra güvenlidir; tersi sıra (önce push) yeni kodun olmayan tabloya erişip 500 vermesine yol açar.
+
 Migration'lar Vercel build'inde **çalışmaz**; yerelden, Supabase Session pooler üzerinden çalıştırılır. `settings.py`, `migrate` komutunda `.env` içinde `DATABASE_URL_DIRECT` varsa onu otomatik kullanır:
 
 ```powershell
@@ -110,11 +112,15 @@ Emin olmadığınız bir deploy hatasında `vercel.json` doldurarak tahmin etmey
 
 ## Yönetim paneli
 
-`/admin/` yalnızca süper kullanıcıya açıktır ve şu an süper kullanıcı **yoktur**. Gerektiğinde yerelde, `DATABASE_URL_DIRECT` bağlantısıyla, güçlü bir parolayla oluşturun (parola etkileşimli sorulur, hiçbir yere yazılmaz):
+`/admin/` yalnızca süper kullanıcıya açıktır. Süper kullanıcıyı yerelde, `DATABASE_URL_DIRECT` bağlantısıyla, güçlü bir parolayla oluşturun (parola etkileşimli sorulur, hiçbir yere yazılmaz). Panelde anketler bildirim sayısıyla sıralanabilir ve "Seçili anketleri kapat" eylemi vardır:
 
 ```bash
 .venv/Scripts/python manage.py createsuperuser
 ```
+
+## Hız sınırı ve IP
+
+Anonim oy (saatte 30) ve anonim bildirim (saatte 20) IP başına sınırlanır; ham IP saklanmaz, `VOTER_KEY_SALT` ile tuzlanmış özeti `polls_ratelimithit` tablosuna yazılır. IP, yalnızca `DEBUG=False` iken `X-Forwarded-For` başlığından okunur: Vercel bu başlığı istemci IP'siyle yeniden yazar, dolayısıyla sahtelenemez. Başka bir barındırmaya taşınırsa (`CLIENT_IP_HEADER` ayarı) bu güvenin geçerli olup olmadığı doğrulanmalıdır. Ortak IP'nin (okul, kampüs, mobil operatör) arkasındaki gerçek kullanıcılar aynı sınırı paylaşır; sınırlar `polls/services.py` içindeki `RATE_LIMITS` sabitindedir.
 
 ## Bilmeniz gerekenler
 

@@ -14,7 +14,16 @@
           {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
         </div>
       {% endif %}
-      {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+      {% for field in form.visible_fields %}
+        {% if field.name == "website" %}
+          <div class="hp" aria-hidden="true">{{ field.label_tag }} {{ field }}</div>
+        {% else %}
+          {% include "partials/form_field.html" %}
+        {% endif %}
+      {% endfor %}
+      {% if form.website.errors %}
+        <div class="notice notice-error" role="alert"><p>{{ form.website.errors.0 }}</p></div>
+      {% endif %}
       <button type="submit" class="btn btn-primary btn-block">Kayıt ol</button>
     </form>
 

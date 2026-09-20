@@ -57,7 +57,11 @@
       }
     });
 
-    if (hasResults) { renderBar(data.options); }
+    if (hasResults) {
+      renderBar(data.options);
+      var cardButton = document.querySelector("[data-result-card]");
+      if (cardButton && data.total) { cardButton.hidden = false; cardButton.setAttribute("data-eligible", ""); }
+    }
     if (!canVote) { form.removeAttribute("data-vote-form"); }
   }
 

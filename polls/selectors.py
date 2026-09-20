@@ -1,10 +1,11 @@
+import re
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
-from .models import Poll, Vote
+from .models import Poll, Report, Vote
 from .utils import voter_key_for
 
 PAGE_SIZE = 20
@@ -26,9 +27,24 @@ def _open_filter(now):
     return Q(status=Poll.Status.ACTIVE) & (Q(closes_at__isnull=True) | Q(closes_at__gt=now))
 
 
-def feed_queryset(tab):
+SEARCH_MAX_LENGTH = 60
+_TURKISH_I = "[iİıI]"
+
+
+def clean_query(raw):
+    return " ".join((raw or "").split())[:SEARCH_MAX_LENGTH]
+
+
+def search_pattern(query):
+    """Büyük/küçük harf ve Türkçe i/İ/ı/I farkını yok sayan düzenli ifade (kullanıcı girdisi kaçışlanır)."""
+    return "".join(_TURKISH_I if ch in "iİıI" else re.escape(ch) for ch in query)
+
+
+def feed_queryset(tab, query=""):
     now = timezone.now()
     qs = poll_queryset()
+    if query:
+        qs = qs.filter(question__iregex=search_pattern(query))
     if tab == "kapananlar":
         return qs.exclude(_open_filter(now))
     qs = qs.filter(_open_filter(now))
@@ -75,6 +91,16 @@ def votes_by_poll(user, session, poll_ids):
         return votes
     votes.update(rows.values_list("poll_id", "option_id"))
     return votes
+
+
+def has_reported(poll_id, user, session):
+    if user.is_authenticated:
+        return Report.objects.filter(poll_id=poll_id, user=user).exists()
+    if not session.session_key:
+        return False
+    return Report.objects.filter(
+        poll_id=poll_id, reporter_key=voter_key_for(session.session_key), user__isnull=True
+    ).exists()
 
 
 def count_polls_created_today(user):

@@ -3,11 +3,19 @@
 {% block content %}
   <div class="page">
     <h1 class="page-title">Sen sor, kalabalık karar versin.</h1>
+    <form class="search-form" role="search" method="get" action="{% url 'polls:index' %}">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      <label class="visually-hidden" for="search-q">Anket ara</label>
+      <input id="search-q" type="search" name="q" value="{{ q }}" maxlength="60" placeholder="Anket ara" autocomplete="off">
+      <button type="submit" class="btn btn-secondary">Ara</button>
+      {% if q %}<a class="search-clear" href="?tab={{ tab }}">Aramayı temizle</a>{% endif %}
+    </form>
     <nav class="tabs" aria-label="Anket akışı">
       {% for key, label in tabs.items %}
-        <a class="tab{% if key == tab %} tab-active{% endif %}" href="?tab={{ key }}"{% if key == tab %} aria-current="page"{% endif %}>{{ label }}</a>
+        <a class="tab{% if key == tab %} tab-active{% endif %}" href="?tab={{ key }}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"{% if key == tab %} aria-current="page"{% endif %}>{{ label }}</a>
       {% endfor %}
     </nav>
+    {% if q %}<p class="search-summary">“{{ q }}” için sonuçlar</p>{% endif %}
     {% include "partials/poll_list.html" %}
   </div>
 {% endblock %}

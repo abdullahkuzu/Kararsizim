@@ -1,14 +1,24 @@
+import random
 from dataclasses import dataclass, field
+from datetime import timedelta
 
 from django.db import IntegrityError, transaction
 from django.db.models import F
+from django.utils import timezone
 
 from . import selectors
-from .models import Option, Poll, Vote
+from .models import Option, Poll, RateLimitHit, Report, Vote
 
 MIN_OPTIONS = 2
 MAX_OPTIONS = 5
 DAILY_POLL_LIMIT = 10
+
+# scope -> (pencerede izin verilen en fazla olay, pencere saniyesi). Kişi başı değil, IP özeti başı.
+RATE_LIMITS = {
+    "vote": (30, 3600),
+    "report": (20, 3600),
+}
+RATE_LIMIT_RETENTION = timedelta(days=1)
 
 
 class DailyLimitReached(Exception):
@@ -27,6 +37,20 @@ class AlreadyVoted(Exception):
     pass
 
 
+class RateLimited(Exception):
+    def __init__(self, retry_after):
+        super().__init__(retry_after)
+        self.retry_after = retry_after
+
+
+class AlreadyReported(Exception):
+    pass
+
+
+class OwnPoll(Exception):
+    pass
+
+
 def create_poll(author, question, description, option_texts):
     if selectors.count_polls_created_today(author) >= DAILY_POLL_LIMIT:
         raise DailyLimitReached
@@ -38,20 +62,74 @@ def create_poll(author, question, description, option_texts):
     return poll
 
 
+def check_rate_limit(scope, ip_hash):
+    if not ip_hash:
+        return
+    limit, window = RATE_LIMITS[scope]
+    now = timezone.now()
+    hits = RateLimitHit.objects.filter(scope=scope, ip_hash=ip_hash, created_at__gte=now - timedelta(seconds=window))
+    if hits.count() >= limit:
+        oldest = hits.order_by("created_at").values_list("created_at", flat=True).first()
+        retry_after = max(1, int((oldest + timedelta(seconds=window) - now).total_seconds()))
+        raise RateLimited(retry_after)
+
+
+def record_hit(scope, ip_hash):
+    if not ip_hash:
+        return
+    RateLimitHit.objects.create(scope=scope, ip_hash=ip_hash)
+    # Sunucusuz ortamda cron yok: eski kayıtlar ara sıra tembelce temizlenir.
+    if random.random() < 0.02:
+        RateLimitHit.objects.filter(created_at__lt=timezone.now() - RATE_LIMIT_RETENTION).delete()
+
+
+def close_if_expired(poll):
+    """closes_at geçmiş açık anketin durumunu kalıcı olarak kapatır (cron yok, istek anında)."""
+    if poll.status == Poll.Status.ACTIVE and poll.closes_at and poll.closes_at <= timezone.now():
+        Poll.objects.filter(pk=poll.pk, status=Poll.Status.ACTIVE).update(status=Poll.Status.CLOSED)
+        poll.status = Poll.Status.CLOSED
+
+
+def report_poll(poll, user, reporter_key, ip_hash=None):
+    if poll.author_id == user.id:
+        raise OwnPoll
+    if user.is_authenticated:
+        already = Report.objects.filter(poll=poll, user=user).exists()
+    else:
+        already = Report.objects.filter(poll=poll, reporter_key=reporter_key, user__isnull=True).exists()
+    if already:
+        raise AlreadyReported
+    if not user.is_authenticated:
+        check_rate_limit("report", ip_hash)
+    try:
+        with transaction.atomic():
+            Report.objects.create(
+                poll=poll, user=user if user.is_authenticated else None, reporter_key=reporter_key
+            )
+            if not user.is_authenticated:
+                record_hit("report", ip_hash)
+    except IntegrityError:
+        raise AlreadyReported from None
+
+
 def _already_voted(poll, user, voter_key):
     if user.is_authenticated:
         return Vote.objects.filter(poll=poll, user=user).exists()
     return Vote.objects.filter(poll=poll, voter_key=voter_key, user__isnull=True).exists()
 
 
-def cast_vote(poll, option, user, voter_key, voted_hint=False):
-    """Oy kullanır. `voted_hint`: oturumda bu anket zaten oy verilmiş olarak işaretli."""
+def cast_vote(poll, option, user, voter_key, voted_hint=False, ip_hash=None):
+    """Oy kullanır. `voted_hint`: oturumda bu anket zaten oy verilmiş olarak işaretli.
+    `ip_hash`: verilirse ve kullanıcı anonimse saatlik IP sınırı uygulanır."""
     if not poll.is_open:
         raise PollClosed
     if option is None or option.poll_id != poll.pk:
         raise InvalidOption
     if voted_hint or _already_voted(poll, user, voter_key):
         raise AlreadyVoted
+    anonymous = not user.is_authenticated
+    if anonymous:
+        check_rate_limit("vote", ip_hash)
     try:
         with transaction.atomic():
             Vote.objects.create(
@@ -62,6 +140,8 @@ def cast_vote(poll, option, user, voter_key, voted_hint=False):
             )
             Option.objects.filter(pk=option.pk).update(vote_count=F("vote_count") + 1)
             Poll.objects.filter(pk=poll.pk).update(total_votes=F("total_votes") + 1)
+            if anonymous:
+                record_hit("vote", ip_hash)
     except IntegrityError:
         raise AlreadyVoted from None
 

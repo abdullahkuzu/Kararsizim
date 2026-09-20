@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET, require_POST
 from . import selectors, services
 from .forms import PollForm
 from .models import Poll
-from .utils import get_voter_key
+from .utils import client_ip_hash, get_voter_key
 
 
 def _page_number(request):
@@ -24,20 +24,24 @@ def index(request):
     tab = request.GET.get("tab", selectors.DEFAULT_TAB)
     if tab not in selectors.TABS:
         tab = selectors.DEFAULT_TAB
+    query = selectors.clean_query(request.GET.get("q"))
     page = _page_number(request)
-    polls, has_more = selectors.load_more_page(selectors.feed_queryset(tab), page)
+    polls, has_more = selectors.load_more_page(selectors.feed_queryset(tab, query), page)
     return render(request, "polls/index.html", {
         "views": services.build_poll_views(polls, request.user, request.session),
         "tabs": selectors.TABS,
         "tab": tab,
+        "q": query,
         "has_more": has_more,
         "next_page": page + 1,
     })
 
 
 def _render_detail(request, poll, status=200):
+    services.close_if_expired(poll)
     view = services.build_poll_views([poll], request.user, request.session)[0]
-    return render(request, "polls/detail.html", {"view": view}, status=status)
+    reported = not view.is_owner and selectors.has_reported(poll.pk, request.user, request.session)
+    return render(request, "polls/detail.html", {"view": view, "reported": reported}, status=status)
 
 
 def detail(request, public_id):
@@ -76,9 +80,17 @@ def vote(request, public_id):
         option_id = None
     option = next((o for o in poll.options.all() if o.pk == option_id), None)
 
+    services.close_if_expired(poll)
     error = None
+    retry_after = None
     try:
-        services.cast_vote(poll, option, request.user, get_voter_key(request, create=True), voted_hint)
+        services.cast_vote(
+            poll, option, request.user, get_voter_key(request, create=True), voted_hint,
+            ip_hash=client_ip_hash(request),
+        )
+    except services.RateLimited as exc:
+        error = (429, "Çok fazla oy kullandın. Biraz sonra tekrar dene.")
+        retry_after = exc.retry_after
     except tuple(VOTE_ERRORS) as exc:
         error = VOTE_ERRORS[type(exc)]
     else:
@@ -87,6 +99,13 @@ def vote(request, public_id):
     if error and error[0] == 409:
         _mark_voted(request.session, poll.pk)
 
+    response = _vote_response(request, poll, error)
+    if retry_after:
+        response["Retry-After"] = str(retry_after)
+    return response
+
+
+def _vote_response(request, poll, error):
     if not _wants_json(request):
         if error is None:
             messages.success(request, "Oyun kaydedildi.")
@@ -111,8 +130,27 @@ def vote(request, public_id):
 @never_cache
 def results(request, public_id):
     poll = get_object_or_404(selectors.poll_queryset(), public_id=public_id)
+    services.close_if_expired(poll)
     view = services.build_poll_views([poll], request.user, request.session)[0]
     return JsonResponse(services.results_payload(view))
+
+
+@require_POST
+def report(request, public_id):
+    poll = get_object_or_404(Poll, public_id=public_id)
+    try:
+        services.report_poll(
+            poll, request.user, get_voter_key(request, create=True), ip_hash=client_ip_hash(request)
+        )
+    except services.OwnPoll:
+        messages.error(request, "Kendi anketini bildiremezsin.")
+    except services.AlreadyReported:
+        messages.info(request, "Bu anketi zaten bildirdin.")
+    except services.RateLimited:
+        messages.error(request, "Çok fazla bildirim gönderdin. Biraz sonra tekrar dene.")
+    else:
+        messages.success(request, "Bildirimin alındı. Teşekkürler.")
+    return redirect(poll)
 
 
 def _owned_poll_or_403(request, public_id):

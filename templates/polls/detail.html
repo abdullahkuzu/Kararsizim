@@ -28,8 +28,26 @@
         </ul>
       </form>
 
+      <div class="share-actions">
+        <button type="button" class="btn btn-secondary" data-share hidden
+                data-share-url="{% absolute_url view.poll.get_absolute_url %}" data-share-title="{{ view.poll.question }}">Paylaş</button>
+        <button type="button" class="btn btn-secondary" data-result-card hidden
+                {% if view.show_results and view.total %}data-eligible{% endif %}>Sonuç kartını indir</button>
+      </div>
+
       {% if view.can_vote and view.show_results %}
         <p class="field-help">Sonuçları sahibi olduğun için görüyorsun. İstersen sen de oy verebilirsin.</p>
+      {% endif %}
+
+      {% if not view.is_owner %}
+        <form class="report-form" method="post" action="{% url 'polls:report' view.poll.public_id %}">
+          {% csrf_token %}
+          {% if reported %}
+            <span class="report-done">Bu anketi bildirdin.</span>
+          {% else %}
+            <button type="submit" class="link-button">Uygunsuz olarak bildir</button>
+          {% endif %}
+        </form>
       {% endif %}
 
       {% if view.is_owner %}
@@ -46,4 +64,6 @@
     </article>
   </div>
   {% if view.can_vote %}<script src="{% static 'js/vote.js' %}" defer></script>{% endif %}
+  <script src="{% static 'js/share.js' %}" defer></script>
+  <script src="{% static 'js/result-card.js' %}" defer></script>
 {% endblock %}

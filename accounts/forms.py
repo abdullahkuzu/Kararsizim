@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.auth.forms import AuthenticationForm, BaseUserCreationForm
 from django.core.exceptions import ValidationError
 
@@ -9,6 +10,13 @@ RESERVED_USERNAMES = {
 
 
 class RegisterForm(BaseUserCreationForm):
+    # Honeypot: insanlar görmez ve doldurmaz, formları körlemesine dolduran botlar doldurur.
+    website = forms.CharField(
+        required=False,
+        label="Web sitesi",
+        widget=forms.TextInput(attrs={"tabindex": "-1", "autocomplete": "off"}),
+    )
+
     class Meta:
         model = User
         fields = ("username", "email")
@@ -28,6 +36,11 @@ class RegisterForm(BaseUserCreationForm):
         self.fields["password2"].label = "Parola (tekrar)"
         self.fields["password2"].help_text = ""
         self.fields["password2"].widget.attrs["autocomplete"] = "new-password"
+
+    def clean_website(self):
+        if self.cleaned_data["website"]:
+            raise ValidationError("Kayıt tamamlanamadı. Sayfayı yenileyip tekrar dene.")
+        return ""
 
     def clean_username(self):
         username = self.cleaned_data["username"]

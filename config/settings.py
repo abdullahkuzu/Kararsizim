@@ -123,3 +123,5 @@ if not DEBUG and "test" not in sys.argv:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 3600
+    # Vercel X-Forwarded-For'ı istemci IP'siyle yeniden yazar (sahtelenemez); hız sınırı bunu kullanır.
+    CLIENT_IP_HEADER = "HTTP_X_FORWARDED_FOR"

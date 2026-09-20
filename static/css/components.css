@@ -592,3 +592,82 @@ form[aria-busy="true"] .option-row:not(.is-loading) {
   margin: 0 0 var(--sp-5);
   color: var(--muted);
 }
+
+
+/* Arama */
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.search-form input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font: inherit;
+}
+
+.search-clear {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.search-summary {
+  margin: 0 0 var(--sp-4);
+  color: var(--muted);
+}
+
+/* Paylaş, kart, bildir */
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.report-form {
+  margin: var(--sp-4) 0 0;
+}
+
+.link-button {
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--fs-14);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--ink);
+}
+
+.report-done {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--muted);
+  font-size: var(--fs-14);
+}
+
+/* Honeypot: ekran dışında, klavye ve ekran okuyucudan gizli */
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

@@ -86,6 +86,36 @@ class RegisterTests(TestCase):
         self.assertRedirects(self.client.get(self.url), "/")
 
 
+class HoneypotTests(TestCase):
+    url = reverse("accounts:register")
+
+    def test_filled_honeypot_is_rejected_without_creating_user(self):
+        response = self.client.post(self.url, register_data(website="http://spam.example"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Kayıt tamamlanamadı.")
+        self.assertEqual(User.objects.count(), 0)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_empty_honeypot_registers_normally(self):
+        response = self.client.post(self.url, register_data(website=""))
+        self.assertRedirects(response, "/")
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_missing_honeypot_field_registers_normally(self):
+        self.assertRedirects(self.client.post(self.url, register_data()), "/")
+
+    def test_honeypot_is_hidden_from_people_and_assistive_tech(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn('class="hp" aria-hidden="true"', html)
+        self.assertIn('name="website"', html)
+        self.assertRegex(html, r'<input[^>]*name="website"[^>]*tabindex="-1"')
+        self.assertRegex(html, r'<input[^>]*name="website"[^>]*autocomplete="off"')
+
+    def test_honeypot_never_shown_as_regular_field(self):
+        response = self.client.get(self.url)
+        self.assertNotContains(response, "field-label\" for=\"id_website")
+
+
 class LoginLogoutTests(TestCase):
     @classmethod
     def setUpTestData(cls):

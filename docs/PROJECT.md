@@ -497,6 +497,8 @@ Sıraya bağlı değil, prototip gösterildikten sonra:
 6. Test kapsamının genişletilmesi.
 7. `closes_at` gelen anketlerin otomatik kapanması (view içinde tembel kontrol; cron yok).
 
+**Uygulama kararları (2026-09-20):** hız sınırı anonim oy için saatte 30 / IP, anonim bildirim için saatte 20 / IP (giriş yapmış kullanıcı sınırlanmaz); IP tuzlanmış özet olarak `polls_ratelimithit` tablosunda tutulur, eski kayıtlar tembelce silinir. Bildirim (`polls_report`) anonim dahil herkese açıktır, kişi başına anket başına bir kez; anket sahibi kendi anketini bildiremez; bildirim sayısı otomatik gizleme yapmaz, sadece yönetim panelinde görünür. Arama yalnızca soru metninde, Türkçe i/İ/ı/I ve büyük/küçük harf farkını yok sayarak çalışır. Sonuç kartı ve paylaş düğmesi JS ile etkinleşir, sonuçlar gizliyken kart üretilmez. `closes_at` için arayüzde bir alan yoktur; yönetim panelinden atanır ve süre dolunca ilk istekte durum kalıcı olarak kapatılır.
+
 ---
 
 ## 9. Test
