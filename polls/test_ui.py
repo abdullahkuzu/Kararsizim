@@ -55,7 +55,7 @@ class PageStructureTests(TestCase):
         self.assertEqual(html.count("<h1"), 1)
         self.assertIn('href="#main"', html)
         self.assertIn('<main id="main"', html)
-        self.assertIn("Sen sor, kalabalık karar versin.", html)
+        self.assertIn("Sen sor, birlikte karar verelim.", html)
 
     def test_fonts_are_loaded_with_swap_and_preconnect(self):
         html = self.client.get("/").content.decode()
@@ -64,6 +64,15 @@ class PageStructureTests(TestCase):
         for family in ("Bricolage+Grotesque", "Inter", "JetBrains+Mono"):
             self.assertIn(family, html)
         self.assertIn("display=swap", html)
+
+    def test_slogan_is_consistent_everywhere(self):
+        old = "kalabalık karar versin"
+        offenders = [str(path.relative_to(TEMPLATE_DIR)) for path in TEMPLATE_DIR.rglob("*.html") if old in path.read_text(encoding="utf-8")]
+        self.assertEqual(offenders, [])
+        html = self.client.get("/").content.decode()
+        self.assertIn('<meta name="description" content="Sen sor, birlikte karar verelim.">', html)
+        self.assertIn('<meta property="og:description" content="Sen sor, birlikte karar verelim.">', html)
+        self.assertRegex(html, r'<h1 class="page-title">Sen sor, birlikte karar verelim\.</h1>')
 
     def test_brand_assets_exist(self):
         for path in ("img/logo.svg", "img/og.png", "css/tokens.css", "css/base.css", "css/components.css"):
