@@ -113,3 +113,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Production (DEBUG=False): Vercel TLS'i sonlandırır, isteği X-Forwarded-Proto ile iletir.
+# Test komutunda kapalı; aksi halde test istemcisi https'e yönlenir.
+if not DEBUG and "test" not in sys.argv:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 3600
