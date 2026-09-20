@@ -69,14 +69,23 @@ Migration sonrası kontrol listesi:
 
 ## İlk deploy (Git bağlantılı)
 
+Ön koşullar (bir kez):
+
+- Vercel hesabında **GitHub bağlantısı** (Settings → Authentication) ve **Vercel GitHub uygulamasının** ilgili depoya erişimi. Depo **özel** ise ikincisi şarttır, yoksa proje oluşturma `repo_not_found` verir. (https://github.com/apps/vercel/installations/new)
+- Vercel'de proje **Framework: Django** olarak açılır; Root Directory repo kökü, Build/Install komutları boş kalır.
+
+Adımlar:
+
 1. Değişiklikleri `main`'e push'layın. Vercel her push'ta otomatik build alır.
-2. Vercel'de **Add New → Project**, GitHub deposunu (`abdullahkuzu/Kararsizim`) seçin. Framework **Django** olarak algılanır; Root Directory repo kökü, Build/Install komutları boş kalır.
-3. Yukarıdaki ortam değişkenlerini **ilk deploy'dan önce** ekleyin. Değişken sonradan eklenirse mevcut deploy etkilenmez; **Redeploy** gerekir.
-4. Deploy bitince adres `https://<proje>.vercel.app` olur. `DJANGO_CSRF_TRUSTED_ORIGINS` bu adresle birebir eşleşmelidir; proje adı alınmışsa Vercel sonuna ek koyabilir, adresi projenin **Domains** sayfasından kontrol edin.
+2. Ortam değişkenlerini **ilk deploy'dan önce** ekleyin (yukarıdaki tablo). Değişken sonradan eklenir veya değiştirilirse mevcut deploy etkilenmez; **Redeploy** gerekir.
+3. Deploy bitince gerçek üretim adresini projenin **Domains** sayfasından okuyun. `<proje>.vercel.app` adı başkasına aitse Vercel ek koyar (bu projede `kararsizim-nine.vercel.app`). `DJANGO_CSRF_TRUSTED_ORIGINS` bu adresle **birebir** eşleşmelidir. Aynı deploy'a başka adresler de bağlıysa (`<proje>-<takım>.vercel.app`) ve kullanıcılar onları da kullanacaksa hepsi virgülle eklenir; aksi halde o adreste girişte/oylamada CSRF hatası alınır.
+4. **Vercel Authentication** yeni projelerde varsayılan olarak açıktır ve `*.vercel.app` adreslerini Vercel girişinin arkasına alır. Herkese açık bir ürün için **Settings → Deployment Protection** altında kapatılmalıdır (bu projede kapatıldı).
+
+Bu projedeki canlı değerler: adres `https://kararsizim-nine.vercel.app`, Function bölgesi `fra1`, `DJANGO_CSRF_TRUSTED_ORIGINS=https://kararsizim-nine.vercel.app,https://kararsizim-kuzuabdullah-4850.vercel.app`.
 
 ### Deploy sonrası duman testi
 
-- [ ] `https://<proje>.vercel.app/` açılıyor; CSS, JS ve fontlar yükleniyor (tarayıcı konsolunda 404 yok).
+- [ ] `https://<proje>.vercel.app/` açılıyor (giriş duvarı yok); CSS, JS ve fontlar yükleniyor (tarayıcı konsolunda 404 yok).
 - [ ] `http://` adresi `https://`'e yönleniyor.
 - [ ] Kayıt ol → anket oluştur → oy ver uçtan uca çalışıyor.
 - [ ] `/yok-boyle-bir-sayfa/` özel 404 sayfasını gösteriyor (Django hata ekranı değil).
@@ -89,7 +98,9 @@ Migration sonrası kontrol listesi:
 | Belirti | Olası neden | Çözüm |
 |---|---|---|
 | `Bad Request (400)` | `DJANGO_ALLOWED_HOSTS` adresi kapsamıyor | `.vercel.app` ekleyin, Redeploy |
-| Girişte/oylamada `403 Oturum doğrulanamadı` | `DJANGO_CSRF_TRUSTED_ORIGINS` adresle uyuşmuyor (şema ve alt alan adı dahil) | Origin'i birebir yazın, Redeploy |
+| Girişte/oylamada `403 Oturum doğrulanamadı` | `DJANGO_CSRF_TRUSTED_ORIGINS` adresle uyuşmuyor (şema, alt alan adı ve projenin gerçek adı dahil) | Origin'i Domains sayfasındaki adresle birebir yazın, Redeploy |
+| Adres Vercel giriş sayfasına yönlendiriyor | Vercel Authentication açık | Deployment Protection'ı kapatın |
+| Proje oluşturma `repo_not_found` | Vercel GitHub uygulamasının özel depoya izni yok | Uygulamaya depo erişimi verin |
 | Açılışta `500` | `DJANGO_SECRET_KEY` yok veya `DATABASE_URL` hatalı | Runtime loglarına bakın (`Deployments → Logs`) |
 | `failed to resolve host` / bağlanamıyor | `db.<ref>.supabase.co` doğrudan adresi (yalnız IPv6) kullanılmış | Pooler adresini (`aws-0-...pooler.supabase.com`) kullanın |
 | İlk istek yavaş veya hata | Bağlantı havuzu ayarları | `DATABASE_URL` 6543 portlu Transaction pooler olmalı |
