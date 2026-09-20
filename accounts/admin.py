@@ -2,7 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 
+from .forms import AdminLoginForm
 from .models import User
+
+# Yönetim paneli girişi de başarısız deneme sınırına tabi.
+admin.site.login_form = AdminLoginForm
 
 
 class UserCreationForm(AdminUserCreationForm):

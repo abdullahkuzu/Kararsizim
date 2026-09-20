@@ -17,6 +17,8 @@ DAILY_POLL_LIMIT = 10
 RATE_LIMITS = {
     "vote": (30, 3600),
     "report": (20, 3600),
+    # Yalnızca BAŞARISIZ giriş denemeleri sayılır (parola tahminini yavaşlatır).
+    "login": (10, 900),
 }
 RATE_LIMIT_RETENTION = timedelta(days=1)
 

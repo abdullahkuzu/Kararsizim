@@ -1,6 +1,10 @@
 from django import forms
+from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth.forms import AuthenticationForm, BaseUserCreationForm
 from django.core.exceptions import ValidationError
+
+from polls import services
+from polls.utils import client_ip_hash
 
 from .models import User
 
@@ -57,9 +61,33 @@ class RegisterForm(BaseUserCreationForm):
         return email
 
 
-class LoginForm(AuthenticationForm):
+class LoginThrottleMixin:
+    """Aynı IP'den çok fazla başarısız denemeden sonra, doğru parola olsa bile girişi geçici durdurur.
+
+    Başarısız denemeler `user_login_failed` sinyaliyle (accounts/signals.py) sayılır; böylece
+    hem site girişi hem yönetim paneli girişi aynı sayaçtan beslenir.
+    """
+
+    def clean(self):
+        if self.request is not None:
+            try:
+                services.check_rate_limit("login", client_ip_hash(self.request))
+            except services.RateLimited as exc:
+                minutes = max(1, -(-exc.retry_after // 60))
+                raise ValidationError(
+                    f"Çok fazla başarısız giriş denemesi yaptın. {minutes} dakika sonra tekrar dene.",
+                    code="rate_limited",
+                ) from None
+        return super().clean()
+
+
+class LoginForm(LoginThrottleMixin, AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Kullanıcı adı"
         self.fields["username"].widget.attrs.update({"autocapitalize": "none"})
         self.fields["password"].label = "Parola"
+
+
+class AdminLoginForm(LoginThrottleMixin, AdminAuthenticationForm):
+    pass

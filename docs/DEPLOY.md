@@ -118,9 +118,15 @@ Emin olmadığınız bir deploy hatasında `vercel.json` doldurarak tahmin etmey
 .venv/Scripts/python manage.py createsuperuser
 ```
 
+## Giriş güvenliği
+
+Site girişi (`/giris/`) ve yönetim paneli girişi (`/admin/login/`) aynı sayaca tabidir: aynı IP'den 15 dakikada 10 **başarısız** deneme sonrası doğru parola bile 15 dakikaya kadar reddedilir (`RATE_LIMITS["login"]`). Ortak IP arkasındaki bir saldırgan aynı IP'deki gerçek kullanıcıları o sürede giriş yapamaz hale getirebilir; bu, parola tahminini yavaşlatmanın bedelidir.
+
+Yönetici hesabı için: benzersiz ve uzun bir parola (parola yöneticisiyle), kişisel hesaptan ayrı bir süper kullanıcı, yönetim panelindeki işlem günlüğünün (Admin log) düzenli gözden geçirilmesi. İki adımlı doğrulama (2FA) için ek bir paket gerekir (`django-otp` gibi); bağımlılık eklemeden önce onay alınır.
+
 ## Hız sınırı ve IP
 
-Anonim oy (saatte 30) ve anonim bildirim (saatte 20) IP başına sınırlanır; ham IP saklanmaz, `VOTER_KEY_SALT` ile tuzlanmış özeti `polls_ratelimithit` tablosuna yazılır. IP, yalnızca `DEBUG=False` iken `X-Forwarded-For` başlığından okunur: Vercel bu başlığı istemci IP'siyle yeniden yazar, dolayısıyla sahtelenemez. Başka bir barındırmaya taşınırsa (`CLIENT_IP_HEADER` ayarı) bu güvenin geçerli olup olmadığı doğrulanmalıdır. Ortak IP'nin (okul, kampüs, mobil operatör) arkasındaki gerçek kullanıcılar aynı sınırı paylaşır; sınırlar `polls/services.py` içindeki `RATE_LIMITS` sabitindedir.
+Anonim oy (saatte 30), anonim bildirim (saatte 20) ve başarısız giriş (15 dakikada 10) IP başına sınırlanır; ham IP saklanmaz, `VOTER_KEY_SALT` ile tuzlanmış özeti `polls_ratelimithit` tablosuna yazılır. IP, yalnızca `DEBUG=False` iken `X-Forwarded-For` başlığından okunur: Vercel bu başlığı istemci IP'siyle yeniden yazar, dolayısıyla sahtelenemez. Başka bir barındırmaya taşınırsa (`CLIENT_IP_HEADER` ayarı) bu güvenin geçerli olup olmadığı doğrulanmalıdır. Ortak IP'nin (okul, kampüs, mobil operatör) arkasındaki gerçek kullanıcılar aynı sınırı paylaşır; sınırlar `polls/services.py` içindeki `RATE_LIMITS` sabitindedir.
 
 ## Bilmeniz gerekenler
 
