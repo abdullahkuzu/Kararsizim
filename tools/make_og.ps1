@@ -18,7 +18,7 @@ $title = New-Object System.Drawing.Font 'Segoe UI', 108, ([System.Drawing.FontSt
 $sub = New-Object System.Drawing.Font 'Segoe UI', 44, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
 $i = [string][char]0x131
 $g.DrawString(('Karars' + $i + 'z' + $i + 'm'), $title, $ink, 90, 120)
-$g.DrawString('Sen sor, birlikte karar verelim.', $sub, $muted, 96, 275)
+$g.DrawString('Birlikte karar verelim.', $sub, $muted, 96, 275)
 # karar çubuğu
 $x = 96; $y = 430; $total = 1008; $ht = 56
 $segs = @(@(0.42, '#5B3DF5'), @(0.33, '#FF3D8B'), @(0.25, '#00D19A'))

@@ -13,7 +13,7 @@
 
 **Kararsızım**, kullanıcıların kararsız kaldıkları konuları küçük anketlere dönüştürüp kalabalığa danıştığı bir web uygulamasıdır.
 
-- **Slogan:** Sen sor, birlikte karar verelim. (2026-09-20'de "Sen sor, kalabalık karar versin." yerine değiştirildi.)
+- **Slogan:** Birlikte karar verelim. (2026-09-20'de önce "Sen sor, kalabalık karar versin." yerine "Sen sor, birlikte karar verelim.", sonra bu kısa hâli yapıldı.)
 - **Tipik kullanım:** "Bugün sinemaya mı gitsem, restorana mı?" → 2–5 seçenek → herkes oylar → sonuç anlık görünür.
 - **Bu aşamanın hedefi:** Çalışan, deploy edilmiş, gösterilebilir bir **prototip**. Ölçeklenebilirlik, mikro servisler, karmaşık altyapı **şu an hedef değil**.
 
